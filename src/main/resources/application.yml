@@ -3,16 +3,25 @@ spring:
     name: yu-ai-agent
   profiles:
     active: local
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+
   ai:
     dashscope:
       api-key: your-api-key
       chat:
         options:
           model: qwen-plus
-    ollama:
-      base-url: http://localhost:11434
-      chat:
-        model: gemma3:1b
+
+      vectorstore:
+        pgvector:
+          index-type: HNSW
+          dimensions: 1536
+          distance-type: COSINE_DISTANCE
+          max-document-batch-size: 10000
 #    vectorstore:
 #      pgvector:
 #        index-type: HNSW

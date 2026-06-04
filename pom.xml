@@ -90,7 +90,7 @@
             <artifactId>spring-ai-pgvector-store</artifactId>
             <version>1.0.0-M6</version>
         </dependency>
-        <!-- 自动整合 PGVector 向量存储 -->
+<!--&lt;!&ndash;         自动整合 PGVector 向量存储 &ndash;&gt;-->
 <!--        <dependency>-->
 <!--            <groupId>org.springframework.ai</groupId>-->
 <!--            <artifactId>spring-ai-starter-vector-store-pgvector</artifactId>-->
