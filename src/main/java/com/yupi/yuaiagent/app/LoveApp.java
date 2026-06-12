@@ -3,8 +3,8 @@ package com.yupi.yuaiagent.app;
 import com.yupi.yuaiagent.advisor.MyLoggerAdvisor;
 import com.yupi.yuaiagent.advisor.ReReadingAdvisor;
 import com.yupi.yuaiagent.chatmemory.FileBasedChatMemory;
-import com.yupi.yuaiagent.rag.LoveAppRagCustomAdvisorFactory;
-import com.yupi.yuaiagent.rag.QueryRewriter;
+import com.yupi.yuaiagent.rag.*;
+import com.yupi.yuaiagent.tools.WeatherTools;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -15,7 +15,11 @@ import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.vectorstore.SimpleVectorStore;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -42,14 +46,21 @@ public class LoveApp {
 //        ChatMemory chatMemory = new FileBasedChatMemory(fileDir);
         // 初始化基于内存的对话记忆
         ChatMemory chatMemory = new InMemoryChatMemory();
-        chatClient = ChatClient.builder(dashscopeChatModel).defaultSystem(SYSTEM_PROMPT).defaultAdvisors(new MessageChatMemoryAdvisor(chatMemory),
+        chatClient = ChatClient.builder(dashscopeChatModel).
+                defaultSystem(SYSTEM_PROMPT).
+                defaultTools(new WeatherTools()).
+                defaultAdvisors(new MessageChatMemoryAdvisor(chatMemory),
                 // 自定义日志 Advisor，可按需开启
                 new MyLoggerAdvisor()
 //                        // 自定义推理增强 Advisor，可按需开启
 //                       ,new ReReadingAdvisor()
         ).build();
+
+
     }
 
+    @Resource
+    private TranslationQueryTransformer translationQueryTransformer;
     /**
      * AI 基础对话（支持多轮对话记忆）
      *
@@ -58,6 +69,9 @@ public class LoveApp {
      * @return
      */
     public String doChat(String message, String chatId) {
+
+        message = translationQueryTransformer.transform(message);
+
         ChatResponse chatResponse = chatClient.prompt().user(message).advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId).param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10)).call().chatResponse();
         String content = chatResponse.getResult().getOutput().getText();
         log.info("content: {}", content);
@@ -127,4 +141,7 @@ public class LoveApp {
         log.info("content: {}", content);
         return content;
     }
+
+
+
 }
